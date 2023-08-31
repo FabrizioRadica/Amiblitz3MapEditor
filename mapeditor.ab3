@@ -1,0 +1,173 @@
+; XTRA
+; Embedded .xtra Header
+; 
+; General Info
+; -------------------------------------------------------
+; ExePath         = "Ram Disk:"
+; ExeFile         = "TestAB"
+; CreateIcon      = 1
+; Residents       = ""
+; 
+; Compiler
+; -------------------------------------------------------
+; StringBuffer    = 10240
+; MakeSmallest    = 0
+; FuncOptimize    = 1
+; Version         = 0.0.0
+; NumberOfBuilds  = 180
+; 
+; Debugger
+; -------------------------------------------------------
+; CliArgs         = ""
+; StackSize       = 80000
+; RuntimeDebug    = 1
+; DebugInfo       = 0
+; CreateDbgFile   = 0
+; OverflowCheck   = 0
+; AssemblerCheck  = 0
+; InterruptCheck  = 1
+; AutoRun         = 1
+; 
+; Editor
+; -------------------------------------------------------
+; CursorLine      = 32
+; CursorColumn    = 1
+; LabelSearch     = ""
+; LabelRemark     = 0
+; LabelAll        = 0
+; LabelPosition   = 0
+; 
+; Blitz Objects
+; -------------------------------------------------------
+; Max File        = 5
+; Max GadgetList  = 5
+; Max Shape       = 100
+; Max Bank        = 5
+; Max MenuList    = 5
+; Max GTList      = 20
+; Max Palette     = 4
+; Max BitMap      = 10
+; Max Screen      = 5
+; Max IntuiFont   = 5
+; Max BlitzFont   = 4
+; Max Window      = 20
+; Max IconInfo    = 1
+; Max MUIObject   = 50
+; Max AsyncReq    = 4
+; Max Req-Lib     = 5
+; Max GTMenuList  = 5
+; Max Console     = 5
+; Max TCPSock     = 5
+; Max Tape        = 5
+; Max Sound       = 10
+; Max MedModule   = 8
+; Max Buffer      = 10
+; Max Queue       = 10
+; Max Sprite      = 20
+; Max Module      = 5
+; Max Slice       = 10
+; Max Page        = 4
+; Max CopList     = 10
+; Max PTModule    = 5
+; Max Anim        = 10
+; Max NChunky     = 50
+; Max Chunky      = 20
+; Max Stencil     = 5
+; Max XBSound     = 10
+; /XTRA
+
+; MAP EDITOR v.01
+; by Fabrizio Radica
+;
+
+WBStartup
+DEFTYPE .w
+
+#CELLSIZE=16
+#MOUSESPEED=4  ; 1, 2 or 4
+
+;Apre una bitmap in 320x200 in 3 Bitplane (8 colori)
+BitMap 0,320,256,3
+
+; CURSOR
+Box 0,0,#CELLSIZE,#CELLSIZE,2
+GetaShape 0,0,0,#CELLSIZE+1,#CELLSIZE+1
+Cls
+
+; GRID
+
+For x=0 To 19
+For y=0 To 15
+  Box x*#CELLSIZE,y*#CELLSIZE,#CELLSIZE,#CELLSIZE,1
+  Next
+Next
+
+
+BitMap 1,320,256,3
+
+CopyBitMap 0,1
+
+
+Buffer 0, 2*16384:Buffer 1, 2*16384
+
+;Inizializzo la copperlist in 8 colori ed attivo gli 8 sprites
+InitCopList 0,44,256,$03,8,8,0
+
+;preapro la bitmap per mostrarla
+DisplayBitMap 0,0
+
+;setto il colore nero nel primo registro della palette (lo sfondo) e la mostro
+PalRGB 0,0,0,0,0
+PalRGB 0,1,5,5,5
+PalRGB 0,2,15,0,0
+PalRGB 0,3,0,15,0
+
+DisplayPalette 0,0
+
+;entro in modalit` BLITZ (utilizzo i chip custom di Amiga)
+BLITZ
+
+;Finalmente visualizzo
+CreateDisplay 0
+
+
+Function DoubleBuffer{}
+SHARED db
+    VWait
+    DisplayBitMap 0,db
+    db=1-db
+    Use BitMap db
+    UnBuffer db
+
+End Function
+
+;Mainloop
+;esce se premo il tasto ESC
+
+;MouseArea 0,0,320,256
+Mouse On
+While RawStatus($45)=0 AND RawStatus($10)=0
+
+   DoubleBuffer{}
+
+    mx=(MouseX LSR #MOUSESPEED) MOD 20
+    my=(MouseY LSR #MOUSESPEED) MOD 16
+
+
+    mousePosX=mx*#CELLSIZE
+    mousePosY=my*#CELLSIZE
+
+    If Joyb(0)
+      ;Box mousePosX,mousePosY,mousePosX+#CELLSIZE,mousePosY+#CELLSIZE,3
+      Boxf mousePosX,mousePosY,mousePosX+#CELLSIZE,mousePosY+#CELLSIZE,3
+    EndIf
+
+    BBlit db,0,mousePosX,mousePosY
+
+
+Wend
+
+;Fine programma - Importante altrimenti potrebbe crashare.
+End
+
+
